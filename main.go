@@ -17,21 +17,23 @@ type Product struct {
 var productList []Product
 
 func getProducts(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	handleCors(w)
+	handlePreflightReq(w, r)
+	
 	if r.Method != "GET" {
 		http.Error(w, "Please use GET method", 400)
 		return
 	}
-	encoder := json.NewEncoder(w)
-	encoder.Encode(productList)
+
+	sendData(w, productList, 200)
+	
 }
 
 func creatProduct(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	w.Header().Set("Access-Control-Allow-Methods", "POST")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	
+	handleCors(w)
+	handlePreflightReq(w, r)
 
 	if r.Method != "POST" {
 		http.Error(w, "Please use POST method", 400)
@@ -49,10 +51,28 @@ func creatProduct(w http.ResponseWriter, r *http.Request) {
 	newProduct.ID = len(productList) + 1
 	productList = append(productList, newProduct)
 
-	w.WriteHeader(201)
-	encoder := json.NewEncoder(w)
-	encoder.Encode(newProduct)
+	sendData(w, newProduct, 201)
 }
+
+func handleCors(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS,PUT,DELETE,PATCH")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type Habib") //add other headers as needed with Content-Type just like habib, or just keep only Content-Type
+}
+
+func handlePreflightReq(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(200)
+	}
+}
+
+func sendData(w http.ResponseWriter, data interface{}, status int) {
+	w.WriteHeader(status)
+	encoder := json.NewEncoder(w)
+	encoder.Encode(data)
+}
+	
 
 func main() {
 	mux := http.NewServeMux()
@@ -110,10 +130,5 @@ func init() {
 		Price:       89.99,
 		ImgURL:      "http://example.com/speaker.jpg",
 	}
-	productList = append(productList, prd1)
-	productList = append(productList, prd2)
-	productList = append(productList, prd3)
-	productList = append(productList, prd4)
-	productList = append(productList, prd5)
-	productList = append(productList, prd6)
+	productList = append(productList, prd1, prd2, prd3, prd4, prd5, prd6)
 }
