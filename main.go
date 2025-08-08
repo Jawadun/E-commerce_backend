@@ -1,87 +1,21 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-type Product struct {
-	ID          int     `json:"id"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	ImgURL      string  `json:"imageUrl"`
-}
-
-var productList []Product
-
-func getProducts(w http.ResponseWriter, r *http.Request) {
-
-	handleCors(w)
-	handlePreflightReq(w, r)
-	
-	if r.Method != "GET" {
-		http.Error(w, "Please use GET method", 400)
-		return
-	}
-
-	sendData(w, productList, 200)
-	
-}
-
-func creatProduct(w http.ResponseWriter, r *http.Request) {
-	
-	handleCors(w)
-	handlePreflightReq(w, r)
-
-	if r.Method != "POST" {
-		http.Error(w, "Please use POST method", 400)
-		return
-	}
-
-	var newProduct Product
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&newProduct)
-	if err != nil {
-		http.Error(w, "Invalid product data", 400)
-		return
-	}
-
-	newProduct.ID = len(productList) + 1
-	productList = append(productList, newProduct)
-
-	sendData(w, newProduct, 201)
-}
-
-func handleCors(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS,PUT,DELETE,PATCH")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type Habib") //add other headers as needed with Content-Type just like habib, or just keep only Content-Type
-}
-
-func handlePreflightReq(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "OPTIONS" {
-		w.WriteHeader(200)
-	}
-}
-
-func sendData(w http.ResponseWriter, data interface{}, status int) {
-	w.WriteHeader(status)
-	encoder := json.NewEncoder(w)
-	encoder.Encode(data)
-}
-	
-
 func main() {
 	mux := http.NewServeMux()
+	globalrouter := globalroute(mux)
 
-	mux.HandleFunc("/products", getProducts)
-	mux.HandleFunc("/create-product", creatProduct)
+	mux.Handle("GET /products", http.HandlerFunc(getProducts))
+
+	mux.Handle("POST /create-product", http.HandlerFunc(creatProduct))
+
 	fmt.Println("Server is running on port 8080...")
 
-	err := http.ListenAndServe(":8080", mux)
+	err := http.ListenAndServe(":8080", globalrouter) // Use globalrouter to handle all requests
 	if err != nil {
 		fmt.Println("Error starting server:", err)
 	}
