@@ -1,8 +1,8 @@
-package main
+package global_router
 
 import "net/http"
 
-func globalroute(mux *http.ServeMux) http.Handler {
+func Globalroute(mux *http.ServeMux) http.Handler {
 	handleAllReq := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS,PUT,DELETE,PATCH")
